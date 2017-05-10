@@ -5,76 +5,68 @@ import Data.Map as DM (Map, fromList)
 import Data.Text (Text, pack)
 import Data.List (transpose)
 
+-- show the Vicsek and Sierpinsky fractals
 main :: IO ()
 main = mainWidget $ do 
-  let vicsekSeed = 
-          [[0, 1, 0]
-          ,[1, 1, 1]
-          ,[0, 1, 0]
-          ]
-  showFractal vicsekSeed
-
+  showFractal [[0, 1, 0] ,[1, 1, 1] ,[0, 1, 0] ]
   el "br" $ return ()
-  let sirpinskiSeed = 
-          [[1, 1, 1]
-          ,[1, 0, 1]
-          ,[1, 1, 1]
-          ]
-  showFractal sirpinskiSeed
+  showFractal [[1, 1, 1] ,[1, 0, 1] ,[1, 1, 1] ]
 
-kprod :: Num a => [[a]] -> [[a]] -> [[a]]
-kprod xs ys = 
-    let m0 = flip $ fmap.fmap.(*)
-        m1 = flip $ fmap.fmap.m0
-    in concatMap (fmap concat.transpose) $ m1 xs ys
-
+-- size in pixels of an individual cell
 cellSize :: Int
 cellSize = 8
 
-cellAttrs :: Map Text Text
-cellAttrs = 
-    fromList [ ( "cx",      "0.5")
-             , ( "cy",      "0.5")
-             , ( "r",       "0.45")
-             , ( "style",   "fill:blue")
-             ] 
-
-groupAttrs :: (Int,Int) -> Map Text Text
-groupAttrs (x,y) = 
-    fromList [ ("transform", 
-                pack $    "scale (" ++ show cellSize ++ ", " ++ show cellSize ++ ") " 
-                       ++ "translate (" ++ show x ++ ", " ++ show y ++ ")" 
-               )
-             ] 
-
-boardAttrs :: Int -> Int -> Map Text Text
-boardAttrs w h = 
-    fromList [ ("width" , pack $ show $ w * cellSize)
-             , ("height", pack $ show $ h * cellSize)
-             ]
-
-showCell :: MonadWidget t m => Int -> (Int,Int) -> m ()
-showCell x (y,on) = 
-    if (on==1) then
-        elSvgns "g"  (constDyn $ groupAttrs (x,y)) $ 
-            elSvgns "circle" (constDyn $ cellAttrs) $ 
-                return ()
-    else
-        return ()
-
-showRow :: MonadWidget t m => (Int,[Int]) -> m ()
-showRow (x,r) = mapM_ (showCell x) $ zip [0..] r 
-
-showMatrix :: MonadWidget t m => [[Int]] -> m ()
-showMatrix m = mapM_ showRow $ zip [0..] m 
-
+-- given a "seed" matrix, generate and display a fractal.
 showFractal :: MonadWidget t m => [[Int]] -> m ()
 showFractal seed = do
-  let fractals = iterate (kprod seed) seed
-      shown = fractals !! 3
+  let boardAttrs w h = 
+         fromList [ ("width" , pack $ show $ w * cellSize)
+                  , ("height", pack $ show $ h * cellSize)
+                  ]
+      fractals = iterate (kronekerProduct seed) seed
+      shown = fractals !! 3 -- the fourth fractal (starting from 0)
       w = length $ head shown
       h = length shown
   elSvgns "svg" (constDyn $ boardAttrs w h) $ showMatrix shown
+
+-- Compute the Kroneker product of two matrices.
+kronekerProduct :: Num a => [[a]] -> [[a]] -> [[a]]
+kronekerProduct xs ys = 
+    let m0 = flip $ fmap.fmap.(*)
+        m1 = flip $ fmap.fmap.m0
+    in concat $ fmap (fmap concat.transpose) $ m1 xs ys
+
+-- Show an entire matrix
+showMatrix :: MonadWidget t m => [[Int]] -> m ()
+showMatrix m = mapM_ showRow $ zip [0..] m 
+
+-- Show a single horizontal row of a matrix
+showRow :: MonadWidget t m => (Int,[Int]) -> m ()
+showRow (x,r) = mapM_ (showCell x) $ zip [0..] r 
+
+-- Show a circle in a box moved to the correct location on screen
+showCell :: MonadWidget t m => Int -> (Int,Int) -> m ()
+showCell x (y,on) = 
+  let boxAttrs (x,y) = -- place box on screen
+        fromList [ ("transform", 
+                    pack $    "scale (" ++ show cellSize ++ ", " ++ show cellSize ++ ") " 
+                           ++ "translate (" ++ show x ++ ", " ++ show y ++ ")" 
+                   )
+                 ] 
+
+      cellAttrs = -- draw circle in box.
+        fromList [ ( "cx",      "0.5")
+                 , ( "cy",      "0.5")
+                 , ( "r",       "0.45")
+                 , ( "style",   "fill:green")
+                 ] 
+
+  in if (on==1) then
+       elSvgns "g"  (constDyn $ boxAttrs (x,y)) $ 
+         elSvgns "circle" (constDyn $ cellAttrs) $ 
+           return ()
+     else
+       return ()
 
 elSvgns :: MonadWidget t m => Text -> Dynamic t (Map Text Text) -> m a -> m a
 elSvgns t m ma = do
