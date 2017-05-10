@@ -5,6 +5,23 @@ import Data.Map as DM (Map, fromList)
 import Data.Text (Text, pack)
 import Data.List (transpose)
 
+main :: IO ()
+main = mainWidget $ do 
+  let vicsekSeed = 
+          [[0, 1, 0]
+          ,[1, 1, 1]
+          ,[0, 1, 0]
+          ]
+  showFractal vicsekSeed
+
+  el "br" $ return ()
+  let sirpinskiSeed = 
+          [[1, 1, 1]
+          ,[1, 0, 1]
+          ,[1, 1, 1]
+          ]
+  showFractal sirpinskiSeed
+
 kprod :: Num a => [[a]] -> [[a]] -> [[a]]
 kprod xs ys = 
     let m0 = flip $ fmap.fmap.(*)
@@ -58,23 +75,6 @@ showFractal seed = do
       w = length $ head shown
       h = length shown
   elSvgns "svg" (constDyn $ boardAttrs w h) $ showMatrix shown
-
-main :: IO ()
-main = mainWidget $ do 
-  let vicsekSeed = 
-          [[0, 1, 0]
-          ,[1, 1, 1]
-          ,[0, 1, 0]
-          ]
-  showFractal vicsekSeed
-
-  el "br" $ return ()
-  let sirpinskiSeed = 
-          [[1, 1, 1]
-          ,[1, 0, 1]
-          ,[1, 1, 1]
-          ]
-  showFractal sirpinskiSeed
 
 elSvgns :: MonadWidget t m => Text -> Dynamic t (Map Text Text) -> m a -> m a
 elSvgns t m ma = do
