@@ -5,22 +5,27 @@ import Data.Map as DM (Map, fromList)
 import Data.Text (Text, pack)
 import Data.List (transpose)
 
--- show the Vicsek and Sierpinski fractals
+-- Show Vicsek and Sierpinski Carpet fractals
 main :: IO ()
 main = mainWidget $ do 
   elAttr "h1" ("style" =: "color:black") $ text "Kroneker Product Based Fractals" 
+  elAttr "a" ("href" =: "http://rosettacode.org/wiki/Kronecker_product_based_fractals#Haskell") $ text "Rosetta Code / Kroneker product based fractals / Haskell"
+
+  -- Show a Vicsek fractal
   el "br" $ return ()
   elAttr "h2" ("style" =: "color:brown") $ text "Vicsek Fractal" 
   showFractal [[0, 1, 0] ,[1, 1, 1] ,[0, 1, 0] ]
+
+  -- Show a Sierpinski Carpet fractal
   el "br" $ return ()
-  elAttr "h2" ("style" =: "color:brown") $ text "Sierpinski Fractal" 
+  elAttr "h2" ("style" =: "color:brown") $ text "Sierpinski Carpet Fractal" 
   showFractal [[1, 1, 1] ,[1, 0, 1] ,[1, 1, 1] ]
 
--- size in pixels of an individual cell
+-- Size in pixels of an individual cell
 cellSize :: Int
 cellSize = 8
 
--- given a "seed" matrix, generate and display a fractal.
+-- Given a "seed" matrix, generate and display a fractal.
 showFractal :: MonadWidget t m => [[Int]] -> m ()
 showFractal seed = do
   let boardAttrs w h = 
@@ -51,21 +56,21 @@ showRow (x,r) = mapM_ (showCell x) $ zip [0..] r
 -- Show a circle in a box moved to the correct location on screen
 showCell :: MonadWidget t m => Int -> (Int,Int) -> m ()
 showCell x (y,on) = 
-  let boxAttrs (x,y) = -- place box on screen
+  let boxAttrs (x,y) = -- Place box on screen
         fromList [ ("transform", 
                     pack $    "scale (" ++ show cellSize ++ ", " ++ show cellSize ++ ") " 
                            ++ "translate (" ++ show x ++ ", " ++ show y ++ ")" 
                    )
                  ] 
 
-      cellAttrs = -- draw circle in box.
+      cellAttrs = -- Draw circle in box.
         fromList [ ( "cx",      "0.5")
                  , ( "cy",      "0.5")
                  , ( "r",       "0.45")
                  , ( "style",   "fill:green")
                  ] 
 
-  in if (on==1) then
+  in if (on==1) then  -- Only draw circle for elements containing 1
        elSvgns "g"  (constDyn $ boxAttrs (x,y)) $ 
          elSvgns "circle" (constDyn $ cellAttrs) $ 
            return ()
