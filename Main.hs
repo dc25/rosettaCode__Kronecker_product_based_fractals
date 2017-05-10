@@ -1,11 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Reflex
 import Reflex.Dom
-import Control.Monad.Trans (liftIO)
 import Data.Map as DM (Map, fromList)
 import Data.Text (Text, pack)
-import Data.Traversable (forM)
-import Data.Time.Clock (getCurrentTime)
 import Data.List (transpose)
 
 kprod :: Num a => [[a]] -> [[a]] -> [[a]]
