@@ -12,15 +12,14 @@ kprod xs ys =
     in concatMap (fmap concat.transpose) $ m1 xs ys
 
 cellSize :: Int
-cellSize = 5
+cellSize = 8
 
 cellAttrs :: Map Text Text
 cellAttrs = 
-    fromList [ ( "x",            "0.05")
-             , ( "y",            "0.05")
-             , ( "width",        "0.9")
-             , ( "height",       "0.9")
-             , ( "style",        "fill:blue")
+    fromList [ ( "cx",      "0.5")
+             , ( "cy",      "0.5")
+             , ( "r",       "0.45")
+             , ( "style",   "fill:blue")
              ] 
 
 groupAttrs :: (Int,Int) -> Map Text Text
@@ -32,16 +31,16 @@ groupAttrs (x,y) =
              ] 
 
 boardAttrs :: Int -> Int -> Map Text Text
-boardAttrs w h = fromList 
-                 [ ("width" , pack $ show $ w * cellSize)
-                 , ("height", pack $ show $ h * cellSize)
-                 ]
+boardAttrs w h = 
+    fromList [ ("width" , pack $ show $ w * cellSize)
+             , ("height", pack $ show $ h * cellSize)
+             ]
 
 showCell :: MonadWidget t m => Int -> (Int,Int) -> m ()
 showCell x (y,on) = 
     if (on==1) then
         elSvgns "g"  (constDyn $ groupAttrs (x,y)) $ 
-            elSvgns "rect" (constDyn $ cellAttrs) $ 
+            elSvgns "circle" (constDyn $ cellAttrs) $ 
                 return ()
     else
         return ()
